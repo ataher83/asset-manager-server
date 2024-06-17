@@ -385,8 +385,56 @@ async function run() {
 
 
     
-    // Admin Statistics
-    app.get('/admin-stat', verifyToken, verifyAdmin, async (req, res) => {
+    // // Admin Statistics
+    // app.get('/admin-stat', verifyToken, verifyAdmin, async (req, res) => {
+    //   const bookingDetails = await bookingsCollection
+    //     .find(
+    //       {},
+    //       {
+    //         projection: {
+    //           date: 1,
+    //           price: 1,
+    //         },
+    //       }
+    //     )
+    //     .toArray()
+
+    //   const totalUsers = await usersCollection.countDocuments()
+    //   const totalRooms = await roomsCollection.countDocuments()
+    //   const totalPrice = bookingDetails.reduce(
+    //     (sum, booking) => sum + booking.price,
+    //     0
+    //   )
+    //   // const data = [
+    //   //   ['Day', 'Sales'],
+    //   //   ['9/5', 1000],
+    //   //   ['10/2', 1170],
+    //   //   ['11/1', 660],
+    //   //   ['12/11', 1030],
+    //   // ]
+    //   const chartData = bookingDetails.map(booking => {
+    //     const day = new Date(booking.date).getDate()
+    //     const month = new Date(booking.date).getMonth() + 1
+    //     const data = [`${day}/${month}`, booking?.price]
+    //     return data
+    //   })
+    //   chartData.unshift(['Day', 'Sales'])
+    //   // chartData.splice(0, 0, ['Day', 'Sales'])
+
+    //   console.log(chartData)
+
+    //   console.log(bookingDetails)
+    //   res.send({
+    //     totalUsers,
+    //     totalRooms,
+    //     totalBookings: bookingDetails.length,
+    //     totalPrice,
+    //     chartData,
+    //   })
+    // })
+
+    // HRManager Statistics
+    app.get('/admin-stat', verifyToken, verifyHRManager, async (req, res) => {
       const bookingDetails = await bookingsCollection
         .find(
           {},
@@ -432,6 +480,7 @@ async function run() {
         chartData,
       })
     })
+
 
     // // Host Statistics
     // app.get('/host-stat', verifyToken, verifyHost, async (req, res) => {
@@ -480,6 +529,7 @@ async function run() {
     //     hostSince: timestamp,
     //   })
     // })
+
     // Employee Statistics
     app.get('/host-stat', verifyToken, verifyEmployee, async (req, res) => {
       const { email } = req.user
@@ -528,6 +578,7 @@ async function run() {
       })
     })
 
+
     // Guest Statistics
     app.get('/guest-stat', verifyToken, async (req, res) => {
       const { email } = req.user
@@ -571,6 +622,9 @@ async function run() {
         guestSince: timestamp,
       })
     })
+
+
+
 
     // Send a ping to confirm a successful connection
     await client.db('admin').command({ ping: 1 })
