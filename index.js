@@ -95,19 +95,31 @@ async function run() {
     const usersCollection = db.collection('users')
     const bookingsCollection = db.collection('bookings')
 
-    // verify admin middleware
-    const verifyAdmin = async (req, res, next) => {
-      console.log('hello')
+    // verify HRManager middleware
+    const verifyHRManager = async (req, res, next) => {
+      console.log('verify HRManager')
       const user = req.user
       const query = { email: user?.email }
       const result = await usersCollection.findOne(query)
       console.log(result?.role)
-      if (!result || result?.role !== 'admin')
+      if (!result || result?.role !== 'HRManager')
         return res.status(401).send({ message: 'unauthorized access!!' })
 
       next()
     }
+    // const verifyAdmin = async (req, res, next) => {
+    //   console.log('hello')
+    //   const user = req.user
+    //   const query = { email: user?.email }
+    //   const result = await usersCollection.findOne(query)
+    //   console.log(result?.role)
+    //   if (!result || result?.role !== 'admin')
+    //     return res.status(401).send({ message: 'unauthorized access!!' })
+
+    //   next()
+    // }
     // verify Employee middleware
+    
     const verifyEmployee = async (req, res, next) => {
       console.log('hello')
       const user = req.user
@@ -135,6 +147,7 @@ async function run() {
     // }
 
     // auth related api
+    
     app.post('/jwt', async (req, res) => {
       const user = req.body
       const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
@@ -148,6 +161,7 @@ async function run() {
         })
         .send({ success: true })
     })
+    
     // Logout
     app.get('/logout', async (req, res) => {
       try {
