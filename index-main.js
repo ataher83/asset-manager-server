@@ -7,7 +7,7 @@ const cookieParser = require('cookie-parser')
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb')
 const jwt = require('jsonwebtoken')
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY)
-const port = process.env.PORT || 8000
+const port = process.env.PORT || 5000
 // const { Resend } = require('resend')
 // const resend = new Resend(api_key)
 // middleware
@@ -505,7 +505,7 @@ async function run() {
 run().catch(console.dir)
 
 app.get('/', (req, res) => {
-  res.send('Hello from StayVista Server..')
+  res.send('Asset Manager is Running...')
 })
 
 // test email
@@ -525,5 +525,5 @@ app.get('/', (req, res) => {
 // })
 
 app.listen(port, () => {
-  console.log(`StayVista is running on port ${port}`)
+  console.log(`Asset Manager is Running on port ${port}`)
 })
