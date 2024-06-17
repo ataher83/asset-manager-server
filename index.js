@@ -233,7 +233,7 @@ async function run() {
       // welcome new user
       sendEmail(user?.email, {
         subject: 'Welcome to Asset Manager!',
-        message: `Hope you will find you destination`,
+        message: `Hope you will find your destination`,
       })
       res.send(result)
     })
@@ -247,7 +247,7 @@ async function run() {
 
     // get all users data from db
     // app.get('/users', verifyToken, verifyAdmin, async (req, res) => {
-    app.get('/users', verifyToken,  async (req, res) => {
+    app.get('/users', verifyToken, verifyHRManager,  async (req, res) => {
       const result = await usersCollection.find().toArray()
       res.send(result)
     })
