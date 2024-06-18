@@ -92,6 +92,7 @@ async function run() {
   try {
     const db = client.db('asset-manager')
     const roomsCollection = db.collection('rooms')
+    const assetsCollection = db.collection('assets')
     const usersCollection = db.collection('users')
     const bookingsCollection = db.collection('bookings')
 
@@ -132,19 +133,19 @@ async function run() {
 
       next()
     }
-    // // verify host middleware
-    // const verifyHost = async (req, res, next) => {
-    //   console.log('hello')
-    //   const user = req.user
-    //   const query = { email: user?.email }
-    //   const result = await usersCollection.findOne(query)
-    //   console.log(result?.role)
-    //   if (!result || result?.role !== 'host') {
-    //     return res.status(401).send({ message: 'unauthorized access!!' })
-    //   }
+    // verify host middleware
+    const verifyHost = async (req, res, next) => {
+      console.log('hello')
+      const user = req.user
+      const query = { email: user?.email }
+      const result = await usersCollection.findOne(query)
+      console.log(result?.role)
+      if (!result || result?.role !== 'host') {
+        return res.status(401).send({ message: 'unauthorized access!!' })
+      }
 
-    //   next()
-    // }
+      next()
+    }
 
     // auth related api
     
@@ -237,8 +238,44 @@ async function run() {
       })
       res.send(result)
     })
+    // app.put('/user', async (req, res) => {
+    //   const user = req.body
 
-    // get a user info by email from db
+    //   const query = { email: user?.email }
+    //   // check if user already exists in db
+    //   const isExist = await usersCollection.findOne(query)
+    //   if (isExist) {
+    //     if (user.status === 'Requested') {
+    //       // if existing user try to change his role
+    //       const result = await usersCollection.updateOne(query, {
+    //         $set: { status: user?.status },
+    //       })
+    //       return res.send(result)
+    //     } else {
+    //       // if existing user login again
+    //       return res.send(isExist)
+    //     }
+    //   }
+
+    //   // save user for the first time
+    //   const options = { upsert: true }
+    //   const updateDoc = {
+    //     $set: {
+    //       ...user,
+    //       timestamp: Date.now(),
+    //     },
+    //   }
+    //   const result = await usersCollection.updateOne(query, updateDoc, options)
+    //   // welcome new user
+    //   sendEmail(user?.email, {
+    //     subject: 'Welcome to Asset Manager!',
+    //     message: `Hope you will find your destination`,
+    //   })
+    //   res.send(result)
+    // })
+
+
+    //// get a user info by email from db
     app.get('/user/:email', async (req, res) => {
       const email = req.params.email
       const result = await usersCollection.findOne({ email })
@@ -275,12 +312,21 @@ async function run() {
       const result = await roomsCollection.find(query).toArray()
       res.send(result)
     })
-    // Save a room data in db
-    app.post('/room', verifyToken, verifyHost, async (req, res) => {
-      const roomData = req.body
-      const result = await roomsCollection.insertOne(roomData)
+
+    // Save  asset data in db
+    app.post('/asset', verifyToken, verifyHRManager, async (req, res) => {
+      const assetData = req.body
+      const result = await assetsCollection.insertOne(assetData)
       res.send(result)
     })
+    // // Save a room data in db
+    // app.post('/room', verifyToken, verifyHost, async (req, res) => {
+    //   const roomData = req.body
+    //   const result = await roomsCollection.insertOne(roomData)
+    //   res.send(result)
+    // })
+
+
     // get all rooms for host
     app.get(
       '/my-listings/:email',
