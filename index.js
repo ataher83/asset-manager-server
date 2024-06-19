@@ -44,7 +44,7 @@ const sendEmail = (emailAddress, emailData) => {
     }
   })
   const mailBody = {
-    from: `"StayVista" <${process.env.TRANSPORTER_EMAIL}>`, // sender address
+    from: `"AssetManager" <${process.env.TRANSPORTER_EMAIL}>`, // sender address
     to: emailAddress, // list of receivers
     subject: emailData.subject, // Subject line
     html: emailData.message, // html body
@@ -205,6 +205,8 @@ async function run() {
     // save a user data in db
     app.put('/user', async (req, res) => {
       const user = req.body
+      
+      console.log(user)
 
       const query = { email: user?.email }
       // check if user already exists in db
@@ -234,7 +236,7 @@ async function run() {
       // welcome new user
       sendEmail(user?.email, {
         subject: 'Welcome to Asset Manager!',
-        message: `Hope you will find your destination`,
+        message: `We are delighted to have you on board as a valued client. Thank you for choosing us to manage your assets and financial goals.`,
       })
       res.send(result)
     })
