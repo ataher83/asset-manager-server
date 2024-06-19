@@ -94,81 +94,6 @@ async function run() {
     const usersCollection = db.collection('users')
     const bookingsCollection = db.collection('bookings')
 
-
-
-
-
-
-
-    // HRManager signup route
-    app.post('/signup/hrmanager', async (req, res) => {
-      const { email, password, name, dateOfBirth, companyName, companyLogo, packageName, memberLimit,  } = req.body;
-      const user = {
-
-        name,
-        email,
-        password,
-        dateOfBirth,
-        companyName,
-        companyLogo,
-        packageName,
-        memberLimit,
-        role: 'HRManager',
-        status: 'Verified',
-        timestamp: Date.now(),
-      };
-
-      const query = { email: user.email };
-      const isExist = await usersCollection.findOne(query);
-
-      if (isExist) {
-        return res.status(400).send({ message: 'User already exists' });
-      }
-
-      const result = await usersCollection.insertOne(user);
-      sendEmail(user.email, {
-        subject: 'Welcome to Asset Manager!',
-        message: 'You have been successfully registered as an HR Manager.',
-      });
-      res.send(result);
-    });
-
-    // Employee signup route
-    app.post('/signup/employee', async (req, res) => {
-      const { email, password, name, dateOfBirth } = req.body;
-      const user = {
-        name,
-        email,
-        password,
-        dateOfBirth,
-        role: 'Employee',
-        status: 'Verified',
-        timestamp: Date.now(),
-      };
-
-      const query = { email: user.email };
-      const isExist = await usersCollection.findOne(query);
-
-      if (isExist) {
-        return res.status(400).send({ message: 'User already exists' });
-      }
-
-      const result = await usersCollection.insertOne(user);
-      sendEmail(user.email, {
-        subject: 'Welcome to Asset Manager!',
-        message: 'You have been successfully registered as an Employee.',
-      });
-      res.send(result);
-    });
-
-
-
-
-
-
-
-
-
     // verify HRManager middleware
     const verifyHRManager = async (req, res, next) => {
       console.log('verify HRManager')
@@ -176,13 +101,24 @@ async function run() {
       const query = { email: user?.email }
       const result = await usersCollection.findOne(query)
       console.log(result?.role)
-      if (!result || result?.role !== 'HRManager') {
+      if (!result || result?.role !== 'HRManager')
         return res.status(401).send({ message: 'unauthorized access!!' })
-      }
+
       next()
     }
+    // const verifyAdmin = async (req, res, next) => {
+    //   console.log('hello')
+    //   const user = req.user
+    //   const query = { email: user?.email }
+    //   const result = await usersCollection.findOne(query)
+    //   console.log(result?.role)
+    //   if (!result || result?.role !== 'admin')
+    //     return res.status(401).send({ message: 'unauthorized access!!' })
+
+    //   next()
+    // }
+    // verify Employee middleware
     
-    // Verify Employee middleware
     const verifyEmployee = async (req, res, next) => {
       console.log('hello')
       const user = req.user
@@ -195,7 +131,6 @@ async function run() {
 
       next()
     }
-
     // verify host middleware
     const verifyHost = async (req, res, next) => {
       console.log('hello')
@@ -264,7 +199,7 @@ async function run() {
 
 
 
-    // ভাল করে চেক কর 
+
     // save a user data in db
     app.put('/user', async (req, res) => {
       const user = req.body
@@ -287,7 +222,6 @@ async function run() {
         }
       }
 
-      // ভাল করে চেক কর
       // save user for the first time
       const options = { upsert: true }
       const updateDoc = {
@@ -304,9 +238,44 @@ async function run() {
       })
       res.send(result)
     })
+    // app.put('/user', async (req, res) => {
+    //   const user = req.body
+
+    //   const query = { email: user?.email }
+    //   // check if user already exists in db
+    //   const isExist = await usersCollection.findOne(query)
+    //   if (isExist) {
+    //     if (user.status === 'Requested') {
+    //       // if existing user try to change his role
+    //       const result = await usersCollection.updateOne(query, {
+    //         $set: { status: user?.status },
+    //       })
+    //       return res.send(result)
+    //     } else {
+    //       // if existing user login again
+    //       return res.send(isExist)
+    //     }
+    //   }
+
+    //   // save user for the first time
+    //   const options = { upsert: true }
+    //   const updateDoc = {
+    //     $set: {
+    //       ...user,
+    //       timestamp: Date.now(),
+    //     },
+    //   }
+    //   const result = await usersCollection.updateOne(query, updateDoc, options)
+    //   // welcome new user
+    //   sendEmail(user?.email, {
+    //     subject: 'Welcome to Asset Manager!',
+    //     message: `Hope you will find your destination`,
+    //   })
+    //   res.send(result)
+    // })
 
 
-    // get a user info by email from db
+    //// get a user info by email from db
     app.get('/user/:email', async (req, res) => {
       const email = req.params.email
       const result = await usersCollection.findOne({ email })
@@ -314,6 +283,7 @@ async function run() {
     })
 
     // get all users data from db
+    // app.get('/users', verifyToken, verifyAdmin, async (req, res) => {
     app.get('/users', verifyToken, verifyHRManager,  async (req, res) => {
       const result = await usersCollection.find().toArray()
       res.send(result)
@@ -349,6 +319,12 @@ async function run() {
       const result = await assetsCollection.insertOne(assetData)
       res.send(result)
     })
+    // // Save a room data in db
+    // app.post('/room', verifyToken, verifyHost, async (req, res) => {
+    //   const roomData = req.body
+    //   const result = await roomsCollection.insertOne(roomData)
+    //   res.send(result)
+    // })
 
 
     // get all rooms for host
@@ -454,7 +430,54 @@ async function run() {
 
 
 
-    // নিচের ফাইলগুলো চেক কর 
+    
+    // // Admin Statistics
+    // app.get('/admin-stat', verifyToken, verifyAdmin, async (req, res) => {
+    //   const bookingDetails = await bookingsCollection
+    //     .find(
+    //       {},
+    //       {
+    //         projection: {
+    //           date: 1,
+    //           price: 1,
+    //         },
+    //       }
+    //     )
+    //     .toArray()
+
+    //   const totalUsers = await usersCollection.countDocuments()
+    //   const totalRooms = await roomsCollection.countDocuments()
+    //   const totalPrice = bookingDetails.reduce(
+    //     (sum, booking) => sum + booking.price,
+    //     0
+    //   )
+    //   // const data = [
+    //   //   ['Day', 'Sales'],
+    //   //   ['9/5', 1000],
+    //   //   ['10/2', 1170],
+    //   //   ['11/1', 660],
+    //   //   ['12/11', 1030],
+    //   // ]
+    //   const chartData = bookingDetails.map(booking => {
+    //     const day = new Date(booking.date).getDate()
+    //     const month = new Date(booking.date).getMonth() + 1
+    //     const data = [`${day}/${month}`, booking?.price]
+    //     return data
+    //   })
+    //   chartData.unshift(['Day', 'Sales'])
+    //   // chartData.splice(0, 0, ['Day', 'Sales'])
+
+    //   console.log(chartData)
+
+    //   console.log(bookingDetails)
+    //   res.send({
+    //     totalUsers,
+    //     totalRooms,
+    //     totalBookings: bookingDetails.length,
+    //     totalPrice,
+    //     chartData,
+    //   })
+    // })
 
     // HRManager Statistics
     app.get('/admin-stat', verifyToken, verifyHRManager, async (req, res) => {
@@ -504,6 +527,54 @@ async function run() {
       })
     })
 
+
+    // // Host Statistics
+    // app.get('/host-stat', verifyToken, verifyHost, async (req, res) => {
+    //   const { email } = req.user
+    //   const bookingDetails = await bookingsCollection
+    //     .find(
+    //       { 'host.email': email },
+    //       {
+    //         projection: {
+    //           date: 1,
+    //           price: 1,
+    //         },
+    //       }
+    //     )
+    //     .toArray()
+
+    //   const totalRooms = await roomsCollection.countDocuments({
+    //     'host.email': email,
+    //   })
+    //   const totalPrice = bookingDetails.reduce(
+    //     (sum, booking) => sum + booking.price,
+    //     0
+    //   )
+    //   const { timestamp } = await usersCollection.findOne(
+    //     { email },
+    //     { projection: { timestamp: 1 } }
+    //   )
+
+    //   const chartData = bookingDetails.map(booking => {
+    //     const day = new Date(booking.date).getDate()
+    //     const month = new Date(booking.date).getMonth() + 1
+    //     const data = [`${day}/${month}`, booking?.price]
+    //     return data
+    //   })
+    //   chartData.unshift(['Day', 'Sales'])
+    //   // chartData.splice(0, 0, ['Day', 'Sales'])
+
+    //   console.log(chartData)
+
+    //   console.log(bookingDetails)
+    //   res.send({
+    //     totalRooms,
+    //     totalBookings: bookingDetails.length,
+    //     totalPrice,
+    //     chartData,
+    //     hostSince: timestamp,
+    //   })
+    // })
 
     // Employee Statistics
     app.get('/host-stat', verifyToken, verifyEmployee, async (req, res) => {
@@ -616,6 +687,21 @@ app.get('/', (req, res) => {
   res.send('Asset Manager is Running...')
 })
 
+// test email
+// app.get('/email', async (req, res) => {
+//   const { data, error } = await resend.emails.send({
+//     from: 'StayVista <onboarding@resend.dev>',
+//     to: ['xidode6213@acuxi.com'],
+//     subject: 'Hello World',
+//     html: '<strong>It works!</strong>',
+//   })
+
+//   if (error) {
+//     return console.error({ error })
+//   }
+
+//   res.send({ data })
+// })
 
 app.listen(port, () => {
   console.log(`Asset Manager is Running on port ${port}`)
