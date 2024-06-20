@@ -87,9 +87,12 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     const db = client.db('asset-manager')
-    const roomsCollection = db.collection('rooms')
-    const assetsCollection = db.collection('assets')
     const usersCollection = db.collection('users')
+    const assetsCollection = db.collection('assets')
+    const requestsCollection = db.collection('requests')
+
+
+    const roomsCollection = db.collection('rooms')
     const bookingsCollection = db.collection('bookings')
 
 
@@ -160,7 +163,7 @@ async function run() {
     });
 
 // ******  ঠিক , কাজ করে,  শুধু মডাল সমস্যা 
-    // // Guest signup route
+    // // Guest signup route  // both for 3 types signup
     app.post('/user', async (req, res) => {
       // const { name, email, password, image, role = 'guest' } = req.body; // চেক 
       const { name, email, password, image, role, dateOfBirth, status, timestamp,
@@ -400,6 +403,8 @@ async function run() {
 
 
     // get a user info by email from db
+    
+    
     app.get('/user/:email', async (req, res) => {
       const email = req.params.email
       const result = await usersCollection.findOne({ email })
@@ -436,10 +441,19 @@ async function run() {
       res.send(result)
     })
 
-    // Save  asset data in db
+
+
+    // Save asset data in db
     app.post('/asset', verifyToken, verifyHRManager, async (req, res) => {
       const assetData = req.body
       const result = await assetsCollection.insertOne(assetData)
+      res.send(result)
+    })
+
+    // Save asset request in db
+    app.post('/request', verifyToken, verifyEmployee, async (req, res) => {
+      const requestData = req.body
+      const result = await requestsCollection.insertOne(requestData)
       res.send(result)
     })
 
