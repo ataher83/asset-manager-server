@@ -74,9 +74,7 @@ const verifyToken = async (req, res, next) => {
   })
 }
 
-
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.0yjrwty.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
-
 
 const client = new MongoClient(uri, {
   serverApi: {
@@ -161,10 +159,45 @@ async function run() {
       res.send(result);
     });
 
+// ******  ঠিক , কাজ করে,  শুধু মডাল সমস্যা 
+    // // Guest signup route
+    app.post('/user', async (req, res) => {
+      // const { name, email, password, image, role = 'guest' } = req.body; // চেক 
+      const { name, email, password, image, role, dateOfBirth, status, timestamp,
+        companyName,
+        companyLogo,
+        packageName,
+        memberLimit, } = req.body; // চেক 
+      const user = {
+        name,
+        email,
+        password,
+        image,
+        dateOfBirth,
+        role,
+        status,
 
+        timestamp,
+        companyName,
+        companyLogo,
+        packageName,
+        memberLimit,
+      };
 
+      const query = { email: user.email };
+      const isExist = await usersCollection.findOne(query);
 
+      if (isExist) {
+        return res.status(400).send({ message: 'User already exists' });
+      }
 
+      const result = await usersCollection.insertOne(user);
+      sendEmail(user.email, {
+        subject: 'Welcome to Asset Manager!',
+        message: `You have been successfully registered as a ${role}.`,
+      });
+      res.send(result);
+    });
 
 
 
@@ -211,7 +244,6 @@ async function run() {
     }
 
     // auth related api
-    
     app.post('/jwt', async (req, res) => {
       const user = req.body
       const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
@@ -262,48 +294,109 @@ async function run() {
     })
 
 
+// *******
+    // Save  User data in db // ইউজার ডাটা সেভ করা // ঠিক 
+    // app.post('/users', async (req, res) => {
+    //   const userData = req.body
+    //   const result = await usersCollection.insertOne(userData)
+    //   res.send(result)
+    // })
+
+
+
 
 
     // ভাল করে চেক কর 
     // save a user data in db
-    app.put('/user', async (req, res) => {
-      const user = req.body
+
+    // app.put('/user', async (req, res) => {
+    //   const user = req.body
       
-      console.log(user)
+    //   console.log(user)
 
-      const query = { email: user?.email }
-      // check if user already exists in db
-      const isExist = await usersCollection.findOne(query)
-      if (isExist) {
-        if (user.status === 'Requested') {
-          // if existing user try to change his role
-          const result = await usersCollection.updateOne(query, {
-            $set: { status: user?.status },
-          })
-          return res.send(result)
-        } else {
-          // if existing user login again
-          return res.send(isExist)
-        }
-      }
+    //   const query = { email: user?.email }
+    //   // check if user already exists in db
+    //   const isExist = await usersCollection.findOne(query)
+    //   if (isExist) {
+    //     if (user.status === 'Requested') {
+    //       // if existing user try to change his role
+    //       const result = await usersCollection.updateOne(query, {
+    //         $set: { status: user?.status },
+    //       })
+    //       return res.send(result)
+    //     } else {
+    //       // if existing user login again
+    //       return res.send(isExist)
+    //     }
+    //   }
 
-      // ভাল করে চেক কর
-      // save user for the first time
-      const options = { upsert: true }
-      const updateDoc = {
-        $set: {
-          ...user,
-          timestamp: Date.now(),
-        },
-      }
-      const result = await usersCollection.updateOne(query, updateDoc, options)
-      // welcome new user
-      sendEmail(user?.email, {
-        subject: 'Welcome to Asset Manager!',
-        message: `We are delighted to have you on board as a valued client. Thank you for choosing us to manage your assets and financial goals.`,
-      })
-      res.send(result)
-    })
+    //   // ভাল করে চেক কর
+    //   // save user for the first time
+    //   const options = { upsert: true }
+    //   const updateDoc = {
+    //     $set: {
+    //       ...user,
+    //       timestamp: Date.now(),
+    //     },
+    //   }
+    //   const result = await usersCollection.updateOne(query, updateDoc, options)
+    //   // welcome new user
+    //   sendEmail(user?.email, {
+    //     subject: 'Welcome to Asset Manager!',
+    //     message: `We are delighted to have you on board as a valued client. Thank you for choosing us to manage your assets and financial goals.`,
+    //   })
+    //   res.send(result)
+    // })
+    
+    // ********** ঠিক, আগের 
+    // app.put('/user', async (req, res) => {
+    //   const { name, email, password, image, role = 'guest' } = req.body;
+    //   const user = {
+    //     name,
+    //     email,
+    //     password,
+    //     image,
+    //     role,
+    //     status: 'Verified',
+    //     timestamp: Date.now(),
+    //   };
+    //   const query = { email: user?.email }
+    //   const isExist = await usersCollection.findOne(query)
+    //   if (isExist) {
+    //     if (user.status === 'Requested') {
+    //       const result = await usersCollection.updateOne(query, {
+    //         $set: { status: user?.status },
+    //       })
+    //       return res.send(result)
+    //     } else {
+    //       return res.send(isExist)
+    //     }
+    //   }
+
+    //   // save user for the first time
+    //   const options = { upsert: true }
+    //   const updateDoc = {
+    //     $set: {
+    //       ...user,
+    //       // timestamp: Date.now(),
+
+    //       // name,
+    //       // email,
+    //       password,
+    //       image,
+    //       // role: 'guest',
+    //       // status: 'Verified',
+    //       timestamp: Date.now(),
+    //     },
+    //   }
+    //   const result = await usersCollection.updateOne(query, updateDoc, options)
+    //   // welcome new user
+    //   sendEmail(user?.email, {
+    //     subject: 'Welcome to Asset Manager!',
+    //     message: `We are delighted to have you on board as a valued client. Thank you for choosing us to manage your assets and financial goals.`,
+    //   })
+    //   res.send(result)
+    // })
 
 
     // get a user info by email from db
