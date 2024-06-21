@@ -403,8 +403,6 @@ async function run() {
 
 
     // get a user info by email from db
-    
-    
     app.get('/user/:email', async (req, res) => {
       const email = req.params.email
       const result = await usersCollection.findOne({ email })
@@ -458,12 +456,9 @@ async function run() {
     })
 
 
+
     // get all rooms for host
-    app.get(
-      '/my-listings/:email',
-      verifyToken,
-      verifyHost,
-      async (req, res) => {
+    app.get('/my-listings/:email', verifyToken, verifyHost, async (req, res) => {
         const email = req.params.email
 
         let query = { 'host.email': email }
@@ -471,6 +466,7 @@ async function run() {
         res.send(result)
       }
     )
+
     // delete a room
     app.delete('/room/:id', verifyToken, verifyHost, async (req, res) => {
       const id = req.params.id
