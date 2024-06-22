@@ -162,8 +162,8 @@ async function run() {
       res.send(result);
     });
 
-// ******  ঠিক , কাজ করে,  শুধু মডাল সমস্যা 
-    // // Guest signup route  // both for 3 types signup
+// ******  ঠিক , কাজ করে, // ঠিক,   শুধু মডাল সমস্যা 
+    // // signup route  // both for 3 types signup
     app.post('/user', async (req, res) => {
       // const { name, email, password, image, role = 'guest' } = req.body; // চেক 
       const { name, email, password, image, role, dateOfBirth, status, timestamp,
@@ -204,6 +204,8 @@ async function run() {
 
 
 
+
+// মিডলওয়ার সমূহ 
 
     // verify HRManager middleware
     const verifyHRManager = async (req, res, next) => {
@@ -278,6 +280,9 @@ async function run() {
     })
 
 
+
+
+
     // create-payment-intent
     app.post('/create-payment-intent', verifyToken, async (req, res) => {
       const price = req.body.price
@@ -297,8 +302,11 @@ async function run() {
     })
 
 
+
+
+
 // *******
-    // Save  User data in db // ইউজার ডাটা সেভ করা // ঠিক 
+    // Save  User data in db // ইউজার ডাটা সেভ করা // ঠিক // অন্য api use করেছি 
     // app.post('/users', async (req, res) => {
     //   const userData = req.body
     //   const result = await usersCollection.insertOne(userData)
@@ -402,14 +410,14 @@ async function run() {
     // })
 
 
-    // get a user info by email from db
+    // get a user info by email from db  // ঠিক 
     app.get('/user/:email', async (req, res) => {
       const email = req.params.email
       const result = await usersCollection.findOne({ email })
       res.send(result)
     })
 
-    // get all users data from db
+    // get all users data from db  
     app.get('/users', verifyToken, verifyHRManager,  async (req, res) => {
       const result = await usersCollection.find().toArray()
       res.send(result)
@@ -441,14 +449,14 @@ async function run() {
 
 
 
-    // Save asset data in db
+    // Save asset data in db    // ঠিক
     app.post('/asset', verifyToken, verifyHRManager, async (req, res) => {
       const assetData = req.body
       const result = await assetsCollection.insertOne(assetData)
       res.send(result)
     })
 
-    // Save asset request in db
+    // Save asset request in db   // ঠিক
     app.post('/request', verifyToken, verifyEmployee, async (req, res) => {
       const requestData = req.body
       const result = await requestsCollection.insertOne(requestData)
@@ -546,6 +554,40 @@ async function run() {
         res.send(result)
       }
     )
+
+
+        // get employee asset request by email from db  // ঠিক ?
+        // app.get('/request/:email', verifyToken, verifyEmployee,  async (req, res) => {
+        //   const email = req.params.email
+        //   const query = { 'employee.email': email }
+        //   const result = await requestsCollection.find(query).toArray()
+        //   res.send(result)
+        // })
+
+
+    // Get employee asset request by email from db //সিজিপি //ঠিক
+    app.get('/request/:email', verifyToken, verifyEmployee, async (req, res) => {
+      const email = req.params.email;
+      const query = { 'assetRequesterEmail': email }; // Fixed field name
+      try {
+        const result = await requestsCollection.find(query).toArray();
+        res.send(result);
+      } catch (err) {
+        res.status(500).send({ error: 'Failed to fetch requests' });
+      }
+    });
+
+
+
+    // get all Asset requests Data  // ঠিক 
+    app.get('/requests', verifyToken, verifyHRManager, async (req, res) => {
+      // const email = req.params.email
+      // const query = { 'guest.email': email }
+      const result = await requestsCollection.find().toArray()
+      res.send(result)
+    })
+
+
 
     // delete a booking
     app.delete('/booking/:id', verifyToken, async (req, res) => {
