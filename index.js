@@ -11,7 +11,11 @@ const port = process.env.PORT || 5000
 
 // middleware
 const corsOptions = {
-  origin: ['http://localhost:5173', 'http://localhost:5174'],
+  origin: [
+    'http://localhost:5173', 
+    'http://localhost:5174',
+    'https://asset-manager-54e54.web.app'
+  ],
   credentials: true,
   optionSuccessStatus: 200,
 }
@@ -418,7 +422,8 @@ async function run() {
     })
 
     // get all users data from db  
-    app.get('/users', verifyToken, verifyHRManager,  async (req, res) => {
+    // app.get('/users', verifyToken, verifyHRManager,  async (req, res) => {
+    app.get('/users', verifyToken, async (req, res) => {
       const result = await usersCollection.find().toArray()
       res.send(result)
     })
@@ -446,6 +451,35 @@ async function run() {
       const result = await roomsCollection.find(query).toArray()
       res.send(result)
     })
+
+
+    // Get assets from db
+    // app.get('/assets', async (req, res) => {
+    //   const category = req.query.category
+    //   console.log(category)
+    //   let query = {}
+    //   if (category && category !== 'null') query = { category }
+    //   const result = await roomsCollection.find(query).toArray()
+    //   res.send(result)
+    // })
+
+    // Get all assets from db
+    app.get('/assets', verifyToken, verifyHRManager,  async (req, res) => {
+      const result = await assetsCollection.find().toArray()
+      res.send(result)
+    })
+
+
+      // Get assets from db  frm hlp
+  // app.get('/assets', verifyToken, async (req, res) => {
+  //   try {
+  //     const result = await assetsCollection.find().toArray();
+  //     res.status(200).send(result);
+  //   } catch (error) {
+  //     console.error('Error fetching assets:', error);
+  //     res.status(500).send({ message: 'Internal Server Error' });
+  //   }
+  // });
 
 
 
