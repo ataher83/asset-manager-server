@@ -96,16 +96,8 @@ async function run() {
     const requestsCollection = db.collection('requests')
 
 
-    const roomsCollection = db.collection('rooms')
-    const bookingsCollection = db.collection('bookings')
 
-
-
-
-
-
-
-    // HRManager signup route
+    // HRManager signup route  //uu
     app.post('/signup/hrmanager', async (req, res) => {
       const { email, password, name, dateOfBirth, companyName, companyLogo, packageName, memberLimit,  } = req.body;
       const user = {
@@ -138,7 +130,7 @@ async function run() {
       res.send(result);
     });
 
-    // Employee signup route
+    // Employee signup route //uu
     app.post('/signup/employee', async (req, res) => {
       const { email, password, name, dateOfBirth } = req.body;
       const user = {
@@ -165,6 +157,7 @@ async function run() {
       });
       res.send(result);
     });
+
 
 // ******  ঠিক , কাজ করে, // ঠিক,   শুধু মডাল সমস্যা 
     // // signup route  // both for 3 types signup
@@ -209,8 +202,6 @@ async function run() {
 
 
 
-// মিডলওয়ার সমূহ 
-
     // verify HRManager middleware
     const verifyHRManager = async (req, res, next) => {
       console.log('verify HRManager')
@@ -238,19 +229,6 @@ async function run() {
       next()
     }
 
-    // verify host middleware
-    const verifyHost = async (req, res, next) => {
-      console.log('hello')
-      const user = req.user
-      const query = { email: user?.email }
-      const result = await usersCollection.findOne(query)
-      console.log(result?.role)
-      if (!result || result?.role !== 'host') {
-        return res.status(401).send({ message: 'unauthorized access!!' })
-      }
-
-      next()
-    }
 
     // auth related api
     app.post('/jwt', async (req, res) => {
@@ -287,7 +265,7 @@ async function run() {
 
 
 
-    // create-payment-intent
+    // create-payment-intent  //uu
     app.post('/create-payment-intent', verifyToken, async (req, res) => {
       const price = req.body.price
       const priceInCent = parseFloat(price) * 100
@@ -308,118 +286,13 @@ async function run() {
 
 
 
-
-// *******
-    // Save  User data in db // ইউজার ডাটা সেভ করা // ঠিক // অন্য api use করেছি 
-    // app.post('/users', async (req, res) => {
-    //   const userData = req.body
-    //   const result = await usersCollection.insertOne(userData)
-    //   res.send(result)
-    // })
-
-
-
-
-
-    // ভাল করে চেক কর 
-    // save a user data in db
-
-    // app.put('/user', async (req, res) => {
-    //   const user = req.body
-      
-    //   console.log(user)
-
-    //   const query = { email: user?.email }
-    //   // check if user already exists in db
-    //   const isExist = await usersCollection.findOne(query)
-    //   if (isExist) {
-    //     if (user.status === 'Requested') {
-    //       // if existing user try to change his role
-    //       const result = await usersCollection.updateOne(query, {
-    //         $set: { status: user?.status },
-    //       })
-    //       return res.send(result)
-    //     } else {
-    //       // if existing user login again
-    //       return res.send(isExist)
-    //     }
-    //   }
-
-    //   // ভাল করে চেক কর
-    //   // save user for the first time
-    //   const options = { upsert: true }
-    //   const updateDoc = {
-    //     $set: {
-    //       ...user,
-    //       timestamp: Date.now(),
-    //     },
-    //   }
-    //   const result = await usersCollection.updateOne(query, updateDoc, options)
-    //   // welcome new user
-    //   sendEmail(user?.email, {
-    //     subject: 'Welcome to Asset Manager!',
-    //     message: `We are delighted to have you on board as a valued client. Thank you for choosing us to manage your assets and financial goals.`,
-    //   })
-    //   res.send(result)
-    // })
-    
-    // ********** ঠিক, আগের 
-    // app.put('/user', async (req, res) => {
-    //   const { name, email, password, image, role = 'guest' } = req.body;
-    //   const user = {
-    //     name,
-    //     email,
-    //     password,
-    //     image,
-    //     role,
-    //     status: 'Verified',
-    //     timestamp: Date.now(),
-    //   };
-    //   const query = { email: user?.email }
-    //   const isExist = await usersCollection.findOne(query)
-    //   if (isExist) {
-    //     if (user.status === 'Requested') {
-    //       const result = await usersCollection.updateOne(query, {
-    //         $set: { status: user?.status },
-    //       })
-    //       return res.send(result)
-    //     } else {
-    //       return res.send(isExist)
-    //     }
-    //   }
-
-    //   // save user for the first time
-    //   const options = { upsert: true }
-    //   const updateDoc = {
-    //     $set: {
-    //       ...user,
-    //       // timestamp: Date.now(),
-
-    //       // name,
-    //       // email,
-    //       password,
-    //       image,
-    //       // role: 'guest',
-    //       // status: 'Verified',
-    //       timestamp: Date.now(),
-    //     },
-    //   }
-    //   const result = await usersCollection.updateOne(query, updateDoc, options)
-    //   // welcome new user
-    //   sendEmail(user?.email, {
-    //     subject: 'Welcome to Asset Manager!',
-    //     message: `We are delighted to have you on board as a valued client. Thank you for choosing us to manage your assets and financial goals.`,
-    //   })
-    //   res.send(result)
-    // })
-
-
     // get a user info by email from db  // ঠিক 
     app.get('/user/:email', async (req, res) => {
       const email = req.params.email
       const result = await usersCollection.findOne({ email })
       res.send(result)
     })
+
 
     // get all users data from db  
     // app.get('/users', verifyToken, verifyHRManager,  async (req, res) => {
@@ -442,26 +315,6 @@ async function run() {
 
 
 
-    // Get all rooms from db
-    app.get('/rooms', async (req, res) => {
-      const category = req.query.category
-      console.log(category)
-      let query = {}
-      if (category && category !== 'null') query = { category }
-      const result = await roomsCollection.find(query).toArray()
-      res.send(result)
-    })
-
-
-    // Get assets from db
-    // app.get('/assets', async (req, res) => {
-    //   const category = req.query.category
-    //   console.log(category)
-    //   let query = {}
-    //   if (category && category !== 'null') query = { category }
-    //   const result = await roomsCollection.find(query).toArray()
-    //   res.send(result)
-    // })
 
     // Get all assets from db
     app.get('/assets', verifyToken, verifyHRManager,  async (req, res) => {
@@ -470,16 +323,6 @@ async function run() {
     })
 
 
-      // Get assets from db  frm hlp
-  // app.get('/assets', verifyToken, async (req, res) => {
-  //   try {
-  //     const result = await assetsCollection.find().toArray();
-  //     res.status(200).send(result);
-  //   } catch (error) {
-  //     console.error('Error fetching assets:', error);
-  //     res.status(500).send({ message: 'Internal Server Error' });
-  //   }
-  // });
 
 
 
@@ -499,104 +342,11 @@ async function run() {
 
 
 
-    // get all rooms for host
-    app.get('/my-listings/:email', verifyToken, verifyHost, async (req, res) => {
-        const email = req.params.email
-
-        let query = { 'host.email': email }
-        const result = await roomsCollection.find(query).toArray()
-        res.send(result)
-      }
-    )
-
-    // delete a room
-    app.delete('/room/:id', verifyToken, verifyHost, async (req, res) => {
-      const id = req.params.id
-      const query = { _id: new ObjectId(id) }
-      const result = await roomsCollection.deleteOne(query)
-      res.send(result)
-    })
-    // Get a single room data from db using _id
-    app.get('/room/:id', async (req, res) => {
-      const id = req.params.id
-      const query = { _id: new ObjectId(id) }
-      const result = await roomsCollection.findOne(query)
-      res.send(result)
-    })
-
-    // Save a booking data in db
-    app.post('/booking', verifyToken, async (req, res) => {
-      const bookingData = req.body
-      // save room booking info
-      const result = await bookingsCollection.insertOne(bookingData)
-      // send email to guest
-      sendEmail(bookingData?.guest?.email, {
-        subject: 'Booking Successful!',
-        message: `You've successfully booked a room through StayVista. Transaction Id: ${bookingData.transactionId}`,
-      })
-      // send email to host
-      sendEmail(bookingData?.host?.email, {
-        subject: 'Your room got booked!',
-        message: `Get ready to welcome ${bookingData.guest.name}.`,
-      })
-
-      res.send(result)
-    })
-
-    // update room data
-    app.put('/room/update/:id', verifyToken, verifyHost, async (req, res) => {
-      const id = req.params.id
-      const roomData = req.body
-      const query = { _id: new ObjectId(id) }
-      const updateDoc = {
-        $set: roomData,
-      }
-      const result = await roomsCollection.updateOne(query, updateDoc)
-      res.send(result)
-    })
-
-    // update Room Status
-    app.patch('/room/status/:id', async (req, res) => {
-      const id = req.params.id
-      const status = req.body.status
-      // change room availability status
-      const query = { _id: new ObjectId(id) }
-      const updateDoc = {
-        $set: { booked: status },
-      }
-      const result = await roomsCollection.updateOne(query, updateDoc)
-      res.send(result)
-    })
-
-    // get all booking for a guest
-    app.get('/my-bookings/:email', verifyToken, async (req, res) => {
-      const email = req.params.email
-      const query = { 'guest.email': email }
-      const result = await bookingsCollection.find(query).toArray()
-      res.send(result)
-    })
-
-    // get all booking for a host
-    app.get(
-      '/manage-bookings/:email',
-      verifyToken,
-      verifyHost,
-      async (req, res) => {
-        const email = req.params.email
-        const query = { 'host.email': email }
-        const result = await bookingsCollection.find(query).toArray()
-        res.send(result)
-      }
-    )
 
 
-        // get employee asset request by email from db  // ঠিক ?
-        // app.get('/request/:email', verifyToken, verifyEmployee,  async (req, res) => {
-        //   const email = req.params.email
-        //   const query = { 'employee.email': email }
-        //   const result = await requestsCollection.find(query).toArray()
-        //   res.send(result)
-        // })
+
+
+
 
 
     // Get employee asset request by email from db //সিজিপি //ঠিক
@@ -623,13 +373,6 @@ async function run() {
 
 
 
-    // delete a booking
-    app.delete('/booking/:id', verifyToken, async (req, res) => {
-      const id = req.params.id
-      const query = { _id: new ObjectId(id) }
-      const result = await bookingsCollection.deleteOne(query)
-      res.send(result)
-    })
 
 
 
@@ -778,6 +521,8 @@ async function run() {
     })
 
 
+
+    
 
 
     // Send a ping to confirm a successful connection
