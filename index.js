@@ -263,8 +263,6 @@ async function run() {
 
 
 
-
-
     // create-payment-intent  //uu
     app.post('/create-payment-intent', verifyToken, async (req, res) => {
       const price = req.body.price
@@ -282,7 +280,6 @@ async function run() {
       // send client secret as response
       res.send({ clientSecret: client_secret })
     })
-
 
 
 
@@ -325,7 +322,6 @@ async function run() {
 
 
 
-
     // Save asset data in db    // ঠিক
     app.post('/asset', verifyToken, verifyHRManager, async (req, res) => {
       const assetData = req.body
@@ -339,11 +335,6 @@ async function run() {
       const result = await requestsCollection.insertOne(requestData)
       res.send(result)
     })
-
-
-
-
-
 
 
 
@@ -373,157 +364,8 @@ async function run() {
 
 
 
-
-
-
-    // নিচের ফাইলগুলো চেক কর 
-
-    // HRManager Statistics
-    app.get('/admin-stat', verifyToken, verifyHRManager, async (req, res) => {
-      const bookingDetails = await bookingsCollection
-        .find(
-          {},
-          {
-            projection: {
-              date: 1,
-              price: 1,
-            },
-          }
-        )
-        .toArray()
-
-      const totalUsers = await usersCollection.countDocuments()
-      const totalRooms = await roomsCollection.countDocuments()
-      const totalPrice = bookingDetails.reduce(
-        (sum, booking) => sum + booking.price,
-        0
-      )
-      // const data = [
-      //   ['Day', 'Sales'],
-      //   ['9/5', 1000],
-      //   ['10/2', 1170],
-      //   ['11/1', 660],
-      //   ['12/11', 1030],
-      // ]
-      const chartData = bookingDetails.map(booking => {
-        const day = new Date(booking.date).getDate()
-        const month = new Date(booking.date).getMonth() + 1
-        const data = [`${day}/${month}`, booking?.price]
-        return data
-      })
-      chartData.unshift(['Day', 'Sales'])
-      // chartData.splice(0, 0, ['Day', 'Sales'])
-
-      console.log(chartData)
-
-      console.log(bookingDetails)
-      res.send({
-        totalUsers,
-        totalRooms,
-        totalBookings: bookingDetails.length,
-        totalPrice,
-        chartData,
-      })
-    })
-
-
-    // Employee Statistics
-    app.get('/host-stat', verifyToken, verifyEmployee, async (req, res) => {
-      const { email } = req.user
-      const bookingDetails = await bookingsCollection
-        .find(
-          { 'employee.email': email },
-          {
-            projection: {
-              date: 1,
-              price: 1,
-            },
-          }
-        )
-        .toArray()
-
-      const totalRooms = await roomsCollection.countDocuments({
-        'employee.email': email,
-      })
-      const totalPrice = bookingDetails.reduce(
-        (sum, booking) => sum + booking.price,
-        0
-      )
-      const { timestamp } = await usersCollection.findOne(
-        { email },
-        { projection: { timestamp: 1 } }
-      )
-
-      const chartData = bookingDetails.map(booking => {
-        const day = new Date(booking.date).getDate()
-        const month = new Date(booking.date).getMonth() + 1
-        const data = [`${day}/${month}`, booking?.price]
-        return data
-      })
-      chartData.unshift(['Day', 'Sales'])
-      // chartData.splice(0, 0, ['Day', 'Sales'])
-
-      console.log(chartData)
-
-      console.log(bookingDetails)
-      res.send({
-        totalRooms,
-        totalBookings: bookingDetails.length,
-        totalPrice,
-        chartData,
-        hostSince: timestamp,
-      })
-    })
-
-
-    // Guest Statistics
-    app.get('/guest-stat', verifyToken, async (req, res) => {
-      const { email } = req.user
-      const bookingDetails = await bookingsCollection
-        .find(
-          { 'guest.email': email },
-          {
-            projection: {
-              date: 1,
-              price: 1,
-            },
-          }
-        )
-        .toArray()
-
-      const totalPrice = bookingDetails.reduce(
-        (sum, booking) => sum + booking.price,
-        0
-      )
-      const { timestamp } = await usersCollection.findOne(
-        { email },
-        { projection: { timestamp: 1 } }
-      )
-
-      const chartData = bookingDetails.map(booking => {
-        const day = new Date(booking.date).getDate()
-        const month = new Date(booking.date).getMonth() + 1
-        const data = [`${day}/${month}`, booking?.price]
-        return data
-      })
-      chartData.unshift(['Day', 'Sales'])
-      // chartData.splice(0, 0, ['Day', 'Sales'])
-
-      console.log(chartData)
-
-      console.log(bookingDetails)
-      res.send({
-        totalBookings: bookingDetails.length,
-        totalPrice,
-        chartData,
-        guestSince: timestamp,
-      })
-    })
-
-
-
-    
-
+ 
+  
 
     // Send a ping to confirm a successful connection
     await client.db('admin').command({ ping: 1 })
