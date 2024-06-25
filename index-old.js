@@ -37,6 +37,7 @@ const sendEmail = (emailAddress, emailData) => {
   })
 
   // verify transporter
+  // verify connection configuration
   transporter.verify(function (error, success) {
     if (error) {
       console.log(error)
@@ -94,10 +95,13 @@ async function run() {
     const assetsCollection = db.collection('assets')
     const requestsCollection = db.collection('requests')
 
-    // HRManager signup route
+
+
+    // HRManager signup route  //uu
     app.post('/signup/hrmanager', async (req, res) => {
-      const { email, password, name, dateOfBirth, companyName, companyLogo, packageName, memberLimit } = req.body;
+      const { email, password, name, dateOfBirth, companyName, companyLogo, packageName, memberLimit,  } = req.body;
       const user = {
+
         name,
         email,
         password,
@@ -126,7 +130,7 @@ async function run() {
       res.send(result);
     });
 
-    // Employee signup route
+    // Employee signup route //uu
     app.post('/signup/employee', async (req, res) => {
       const { email, password, name, dateOfBirth } = req.body;
       const user = {
@@ -154,9 +158,15 @@ async function run() {
       res.send(result);
     });
 
-    // Signup route for all users
+
+    // // signup route  // both for 3 types signup // but modal prob
     app.post('/user', async (req, res) => {
-      const { name, email, password, image, role, dateOfBirth, status, timestamp, companyName, companyLogo, packageName, memberLimit } = req.body;
+      // const { name, email, password, image, role = 'guest' } = req.body; // চেক 
+      const { name, email, password, image, role, dateOfBirth, status, timestamp,
+        companyName,
+        companyLogo,
+        packageName,
+        memberLimit, } = req.body; // চেক 
       const user = {
         name,
         email,
@@ -165,6 +175,7 @@ async function run() {
         dateOfBirth,
         role,
         status,
+
         timestamp,
         companyName,
         companyLogo,
@@ -187,29 +198,38 @@ async function run() {
       res.send(result);
     });
 
-    // Verify HRManager middleware
+
+
+
+    // verify HRManager middleware
     const verifyHRManager = async (req, res, next) => {
+      console.log('verify HRManager')
       const user = req.user
       const query = { email: user?.email }
       const result = await usersCollection.findOne(query)
+      console.log(result?.role)
       if (!result || result?.role !== 'HRManager') {
         return res.status(401).send({ message: 'unauthorized access!!' })
       }
       next()
     }
-
+    
     // Verify Employee middleware
     const verifyEmployee = async (req, res, next) => {
+      console.log('hello')
       const user = req.user
       const query = { email: user?.email }
       const result = await usersCollection.findOne(query)
+      console.log(result?.role)
       if (!result || result?.role !== 'Employee') {
         return res.status(401).send({ message: 'unauthorized access!!' })
       }
+
       next()
     }
 
-    // Auth related API
+
+    // auth related api
     app.post('/jwt', async (req, res) => {
       const user = req.body
       const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
@@ -240,35 +260,44 @@ async function run() {
       }
     })
 
-    // Create payment intent
+
+
+    // create-payment-intent  //uu
     app.post('/create-payment-intent', verifyToken, async (req, res) => {
       const price = req.body.price
       const priceInCent = parseFloat(price) * 100
       if (!price || priceInCent < 1) return
+      // generate clientSecret
       const { client_secret } = await stripe.paymentIntents.create({
         amount: priceInCent,
         currency: 'usd',
+        // In the latest version of the API, specifying the `automatic_payment_methods` parameter is optional because Stripe enables its functionality by default.
         automatic_payment_methods: {
           enabled: true,
         },
       })
+      // send client secret as response
       res.send({ clientSecret: client_secret })
     })
 
-    // Get a user info by email
+
+
+    // get a user info by email from db  
     app.get('/user/:email', async (req, res) => {
       const email = req.params.email
       const result = await usersCollection.findOne({ email })
       res.send(result)
     })
 
-    // Get all users data
+
+    // get all users data from db  
+    // app.get('/users', verifyToken, verifyHRManager,  async (req, res) => {
     app.get('/users', verifyToken, async (req, res) => {
       const result = await usersCollection.find().toArray()
       res.send(result)
     })
 
-    // Update a user role
+    //update a user role
     app.patch('/users/update/:email', async (req, res) => {
       const email = req.params.email
       const user = req.body
@@ -283,99 +312,39 @@ async function run() {
 
 
 
-
-
-
-
-    // Get all assets with search, filter, and sort
-
-    // app.get('/assets', verifyToken, async (req, res) => {
-    //   const { search, sort, filter } = req.query
-    //   const query = {}
-    //   if (search) {
-    //     query.name = { $regex: search, $options: 'i' }
-    //   }
-    //   if (filter) {
-    //     query.category = filter
-    //   }
-    //   const sortOrder = sort === 'asc' ? 1 : -1
-    //   const result = await assetsCollection.find(query).sort({ name: sortOrder }).toArray()
+    // Get all assets from db
+    // app.get('/assets', verifyToken, verifyHRManager,  async (req, res) => {
+    //   const result = await assetsCollection.find().toArray()
     //   res.send(result)
     // })
 
 
 
-    app.get('/assets', verifyToken, async (req, res) => {
-        const { search, sort, stockStatus, assetType } = req.query;
-        const query = {};
-        
-        if (search) {
-          query.assetName = { $regex: search, $options: 'i' };
-        }
-        
-        if (stockStatus) {
-          query.assetAvailability = stockStatus;
-        }
-        
-        if (assetType) {
-          query.assetType = assetType;
-        }
-        
-        const sortOrder = sort === 'asc' ? 1 : -1;
-        
-        try {
-          const result = await assetsCollection.find(query).sort({ assetQuantity: sortOrder }).toArray();
-          res.send(result);
-        } catch (err) {
-          res.status(500).send({ error: 'Failed to fetch assets' });
-        }
-      });
-
-
-
-// Get all assets with search and filter for Asset Request page
-    app.get('/assetsForAssetRequest', verifyToken, async (req, res) => {
-        const { searchTerm, availabilityFilter, typeFilter } = req.query;
-        const query = {};
-        
-        if (searchTerm) {
-          query.assetName = { $regex: searchTerm, $options: 'i' };
-        }
-        
-        if (availabilityFilter) {
-          query.assetAvailability = availabilityFilter;
-        }
-        
-        if (typeFilter) {
-          query.assetType = typeFilter;
-        }
-        
-        
-        try {
-          const result = await assetsCollection.find(query).toArray();
-          res.send(result);
-        } catch (err) {
-          res.status(500).send({ error: 'Failed to fetch assetsForAssetRequest' });
-        }
-      });
-      
 
 
 
 
 
+    // Get all assets from db
+    app.get('/assets', verifyToken,  async (req, res) => {
+      const result = await assetsCollection.find().toArray()
+      res.send(result)
+    })
 
-      
 
 
-    // Save asset data in db
+
+
+    
+
+    // Save asset data in db    
     app.post('/asset', verifyToken, verifyHRManager, async (req, res) => {
       const assetData = req.body
       const result = await assetsCollection.insertOne(assetData)
       res.send(result)
     })
 
-    // Save asset request in db
+    // Save asset request in db   
     app.post('/request', verifyToken, verifyEmployee, async (req, res) => {
       const requestData = req.body
       const result = await requestsCollection.insertOne(requestData)
@@ -386,123 +355,36 @@ async function run() {
 
 
 
-
-
-
-
-
-
-
-
-
-    // Get employee asset request by email
+    // Get employee asset request by email from db 
     app.get('/request/:email', verifyToken, verifyEmployee, async (req, res) => {
-      const email = req.params.email
-      const query = { 'assetRequesterEmail': email }
+      const email = req.params.email;
+      const query = { 'assetRequesterEmail': email }; // Fixed field name
       try {
-        const result = await requestsCollection.find(query).toArray()
-        res.send(result)
+        const result = await requestsCollection.find(query).toArray();
+        res.send(result);
       } catch (err) {
-        res.status(500).send({ error: 'Failed to fetch requests' })
+        res.status(500).send({ error: 'Failed to fetch requests' });
       }
-    })
+    });
 
 
 
-  // Get single employee asset request by email, with search, filter, and sort
-  app.get('/myRequest/:email', verifyToken, verifyEmployee, async (req, res) => {
-    const { search, status, type } = req.query;
-    const email = req.params.email
-    const query = { 'assetRequesterEmail': email }
-    
-    if (search) {
-      query.assetName = { $regex: search, $options: 'i' };
-    }
-    
-    if (status) {
-      query.assetRequestStatus = status;
-    }
-    
-    if (type) {
-      query.assetType = type;
-    }
-    
-    
-    try {
-      const result = await requestsCollection.find(query).toArray();
-      res.send(result);
-    } catch (err) {
-      res.status(500).send({ error: 'Failed to fetch myRequest' });
-    }
-  });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    // Get all asset requests data
+    // get all Asset requests Data  
     app.get('/requests', verifyToken, verifyHRManager, async (req, res) => {
       const result = await requestsCollection.find().toArray()
       res.send(result)
     })
 
 
-  // Get all requests with search, filter, and sort
-  // app.get('/requests', verifyToken, async (req, res) => {
-  //   const { search, status, type } = req.query;
-  //   const query = {};
-    
-  //   if (search) {
-  //     query.assetName = { $regex: search, $options: 'i' };
-  //   }
-    
-  //   if (status) {
-  //     query.assetRequestStatus = status;
-  //   }
-    
-  //   if (type) {
-  //     query.assetType = type;
-  //   }
-    
-    
-  //   try {
-  //     const result = await requestsCollection.find(query).toArray();
-  //     res.send(result);
-  //   } catch (err) {
-  //     res.status(500).send({ error: 'Failed to fetch requests' });
-  //   }
-  // });
+
+ 
   
-
-
-
-
-
-
 
     // Send a ping to confirm a successful connection
     await client.db('admin').command({ ping: 1 })
-    console.log('Pinged your deployment. You successfully connected to MongoDB!')
+    console.log(
+      'Pinged your deployment. You successfully connected to MongoDB!'
+    )
   } finally {
     // Ensures that the client will close when you finish/error
   }
@@ -512,6 +394,7 @@ run().catch(console.dir)
 app.get('/', (req, res) => {
   res.send('Asset Manager is Running...')
 })
+
 
 app.listen(port, () => {
   console.log(`Asset Manager is Running on port ${port}`)
