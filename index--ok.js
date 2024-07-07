@@ -267,15 +267,14 @@ async function run() {
       res.send(result)
     })
 
-
-
-
-
     // Get all users data
     app.get('/users', verifyToken, async (req, res) => {
       const result = await usersCollection.find().toArray()
       res.send(result)
     })
+
+
+
 
 
     // Update a user role
@@ -294,7 +293,7 @@ async function run() {
 
 
 
-// Update a user's company name by ID    [User added to the team]
+// Update a user's company name by ID
 app.patch('/users/:id', verifyToken, verifyHRManager, async (req, res) => {
   const id = req.params.id;
   const { companyName, companyLogo, role } = req.body;
@@ -317,7 +316,14 @@ app.patch('/users/:id', verifyToken, verifyHRManager, async (req, res) => {
 
 
 
-// Remove a user from team by ID  +  also for delete user from manage user
+
+
+
+
+
+
+
+// Remove a user from team by ID 
 app.delete('/users/:id', verifyToken, verifyHRManager, async (req, res) => {
   const id = req.params.id;
   try {
@@ -329,22 +335,6 @@ app.delete('/users/:id', verifyToken, verifyHRManager, async (req, res) => {
     }
   } catch (err) {
     res.status(500).send({ success: false, message: 'Failed to remove user' });
-  }
-});
-
-
-//  Delete an asset
-app.delete('/assets/:id', verifyToken, verifyHRManager, async (req, res) => {
-  const id = req.params.id;
-  try {
-    const result = await assetsCollection.deleteOne({ _id: new ObjectId(id) });
-    if (result.deletedCount === 1) {
-      res.send({ success: true, message: 'Asset deleted successfully!' });
-    } else {
-      res.status(404).send({ success: false, message: 'Asset not found' });
-    }
-  } catch (err) {
-    res.status(500).send({ success: false, message: 'Failed to delete asset' });
   }
 });
 
