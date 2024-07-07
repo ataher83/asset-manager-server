@@ -94,6 +94,9 @@ async function run() {
     const assetsCollection = db.collection('assets')
     const requestsCollection = db.collection('requests')
 
+
+
+
     // HRManager signup route
     app.post('/signup/hrmanager', async (req, res) => {
       const { email, password, name, dateOfBirth, companyName, companyLogo, packageName, memberLimit } = req.body;
@@ -187,6 +190,8 @@ async function run() {
       res.send(result);
     });
 
+
+
     // Verify HRManager middleware
     const verifyHRManager = async (req, res, next) => {
       const user = req.user
@@ -268,6 +273,10 @@ async function run() {
       res.send(result)
     })
 
+
+
+
+
     // Update a user role
     app.patch('/users/update/:email', async (req, res) => {
       const email = req.params.email
@@ -279,6 +288,55 @@ async function run() {
       const result = await usersCollection.updateOne(query, updateDoc)
       res.send(result)
     })
+
+
+
+
+
+// Update a user's company name by ID
+app.patch('/users/:id', verifyToken, verifyHRManager, async (req, res) => {
+  const id = req.params.id;
+  const { companyName, companyLogo, role } = req.body;
+  try {
+      const result = await usersCollection.updateOne(
+          { _id: new ObjectId(id) },
+          { $set: { companyName: companyName, companyLogo: companyLogo, role: role } }
+          // { $set: { companyName: companyName }, { companyLogo: companyLogo } }
+      );
+      if (result.modifiedCount === 1) {
+          res.send({ success: true, message: 'User added to the team' });
+      } else {
+          res.status(404).send({ success: false, message: 'User not found' });
+      }
+  } catch (err) {
+      res.status(500).send({ success: false, message: 'Failed to update user' });
+  }
+});
+
+
+
+
+
+
+
+
+
+
+
+// Remove a user by ID
+app.delete('/users/:id', verifyToken, verifyHRManager, async (req, res) => {
+  const id = req.params.id;
+  try {
+    const result = await usersCollection.deleteOne({ _id: new ObjectId(id) });
+    if (result.deletedCount === 1) {
+      res.send({ success: true, message: 'User removed from team' });
+    } else {
+      res.status(404).send({ success: false, message: 'User not found' });
+    }
+  } catch (err) {
+    res.status(500).send({ success: false, message: 'Failed to remove user' });
+  }
+});
 
 
 
@@ -305,32 +363,142 @@ async function run() {
 
 
 
-    app.get('/assets', verifyToken, async (req, res) => {
+    // app.get('/assets', verifyToken, async (req, res) => {
+    //     const { search, sort, stockStatus, assetType } = req.query;
+    //     const query = {};
+        
+    //     if (search) {
+    //       query.assetName = { $regex: search, $options: 'i' };
+    //     }
+        
+    //     if (stockStatus) {
+    //       query.assetAvailability = stockStatus;
+    //     }
+        
+    //     if (assetType) {
+    //       query.assetType = assetType;
+    //     }
+        
+    //     const sortOrder = sort === 'asc' ? 1 : -1;
+        
+    //     try {
+    //       const result = await assetsCollection.find(query).sort({ assetQuantity: sortOrder }).toArray();
+    //       res.send(result);
+    //     } catch (err) {
+    //       res.status(500).send({ error: 'Failed to fetch assets' });
+    //     }
+    //   });
+
+
+
+    // app.get('/assets', verifyToken, async (req, res) => {
+    //     const { search, sort, stockStatus, assetType } = req.query;
+    //     const query = {};
+        
+    //     if (search) {
+    //       query.assetName = { $regex: search, $options: 'i' };
+    //     }
+        
+    //     if (stockStatus) {
+    //       query.assetAvailability = stockStatus;
+    //     }
+        
+    //     if (assetType) {
+    //       query.assetType = assetType;
+    //     }
+        
+    //     // const sortOrder = sort == 'asc' ? 1 : -1;
+    //     const sortOrder = sort === 'asc' ? 1 : -1;
+
+    //     // const sortArray = (arr: number[], sort: 'asc' | 'desc'): number[] => {
+    //     //   const sortOrder = sort === 'asc' ? 1 : -1;
+    //     //   return arr.sort((a, b) => (a - b) * sortOrder);
+    //     // };
+
+
+    //     // const handleSort = () => {
+    //     //   const sortedProducts = [...products].sort((a, b) => {
+    //     //     const sortMultiplier = sortOrder === 'asc' ? 1 : -1;
+    //     //     return (a.price - b.price) * sortMultiplier;
+    //     //   });
+    //     //   setProducts(sortedProducts);
+    //     //   setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+    //     // };
+
+
+
+
+
+        
+    //     try {
+    //       // const result = await assetsCollection.find(query).sort({ assetQuantity: sortArray }).toArray();
+    //       const result = await assetsCollection.find(query).sort({ assetQuantity: sortOrder }).toArray();
+    //       res.send(result);
+    //     } catch (err) {
+    //       res.status(500).send({ error: 'Failed to fetch assets' });
+    //     }
+    //   });
+
+
+      app.get('/assets', verifyToken, async (req, res) => {
         const { search, sort, stockStatus, assetType } = req.query;
         const query = {};
         
         if (search) {
-          query.assetName = { $regex: search, $options: 'i' };
+            query.assetName = { $regex: search, $options: 'i' };
         }
         
         if (stockStatus) {
-          query.assetAvailability = stockStatus;
+            query.assetAvailability = stockStatus;
         }
         
         if (assetType) {
-          query.assetType = assetType;
+            query.assetType = assetType;
         }
         
         const sortOrder = sort === 'asc' ? 1 : -1;
+    
+        try {
+            const result = await assetsCollection.find(query).toArray();
+            
+            // Sort the assets manually since MongoDB might treat numbers as strings
+            result.sort((a, b) => {
+                const quantityA = parseInt(a.assetQuantity, 10);
+                const quantityB = parseInt(b.assetQuantity, 10);
+                return (quantityA - quantityB) * sortOrder;
+            });
+    
+            res.send(result);
+        } catch (err) {
+            res.status(500).send({ error: 'Failed to fetch assets' });
+        }
+    });
+    
+
+
+
+
+
+
+
+// Get all request,  search by email 
+    app.get('/requests', verifyToken, async (req, res) => {
+        const { searchByEmail } = req.query;
+        const query = {};
+        
+        if (searchByEmail) {
+          // query.assetName = { $regex: searchByName, $options: 'i' };
+          query.assetRequesterEmail = { $regex: searchByEmail, $options: 'i' };
+        }
+        
         
         try {
-          const result = await assetsCollection.find(query).sort({ assetQuantity: sortOrder }).toArray();
+          const result = await requestsCollection.find(query).toArray();
           res.send(result);
         } catch (err) {
-          res.status(500).send({ error: 'Failed to fetch assets' });
+          res.status(500).send({ error: 'Failed to fetch Asset-Request' });
         }
       });
-
 
 
 // Get all assets with search and filter for Asset Request page
