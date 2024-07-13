@@ -63,13 +63,11 @@ const sendEmail = (emailAddress, emailData) => {
 // Verify Token Middleware
 const verifyToken = async (req, res, next) => {
   const token = req.cookies?.token
-  console.log(token)
   if (!token) {
     return res.status(401).send({ message: 'unauthorized access' })
   }
   jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
     if (err) {
-      console.log(err)
       return res.status(401).send({ message: 'unauthorized access' })
     }
     req.user = decoded
@@ -255,6 +253,14 @@ async function run() {
       res.send({ clientSecret: client_secret })
     })
 
+
+
+
+
+
+
+
+
     // Get a user info by email
     app.get('/user/:email', async (req, res) => {
       const email = req.params.email
@@ -267,10 +273,6 @@ async function run() {
       const result = await usersCollection.find().toArray()
       res.send(result)
     })
-
-
-
-
 
     // Update a user role
     app.patch('/users/update/:email', async (req, res) => {
@@ -286,9 +288,7 @@ async function run() {
 
 
 
-
-
-// Update a user's company name by ID
+// Update a user's company name by ID    [User added to the team]
 app.patch('/users/:id', verifyToken, verifyHRManager, async (req, res) => {
   const id = req.params.id;
   const { companyName, companyLogo, role } = req.body;
@@ -313,34 +313,7 @@ app.patch('/users/:id', verifyToken, verifyHRManager, async (req, res) => {
 
 
 
-
-
-
-
-
-// Remove a user from team by ID 
-app.delete('/users/:id', verifyToken, verifyHRManager, async (req, res) => {
-  const id = req.params.id;
-  try {
-    const result = await usersCollection.deleteOne({ _id: new ObjectId(id) });
-    if (result.deletedCount === 1) {
-      res.send({ success: true, message: 'User removed from team' });
-    } else {
-      res.status(404).send({ success: false, message: 'User not found' });
-    }
-  } catch (err) {
-    res.status(500).send({ success: false, message: 'Failed to remove user' });
-  }
-});
-
-
-
-
-
-
-
-
-    // Get all assets with search, filter, and sort
+    // Get all assets [with search, filter, and sort]
 
     // app.get('/assets', verifyToken, async (req, res) => {
     //   const { search, sort, filter } = req.query
@@ -355,7 +328,6 @@ app.delete('/users/:id', verifyToken, verifyHRManager, async (req, res) => {
     //   const result = await assetsCollection.find(query).sort({ name: sortOrder }).toArray()
     //   res.send(result)
     // })
-
 
 
     // app.get('/assets', verifyToken, async (req, res) => {
@@ -383,7 +355,6 @@ app.delete('/users/:id', verifyToken, verifyHRManager, async (req, res) => {
     //       res.status(500).send({ error: 'Failed to fetch assets' });
     //     }
     //   });
-
 
 
     // app.get('/assets', verifyToken, async (req, res) => {
@@ -435,100 +406,40 @@ app.delete('/users/:id', verifyToken, verifyHRManager, async (req, res) => {
     //   });
 
 
-      app.get('/assets', verifyToken, async (req, res) => {
-        const { search, sort, stockStatus, assetType } = req.query;
-        const query = {};
-        
-        if (search) {
-            query.assetName = { $regex: search, $options: 'i' };
-        }
-        
-        if (stockStatus) {
-            query.assetAvailability = stockStatus;
-        }
-        
-        if (assetType) {
-            query.assetType = assetType;
-        }
-        
-        const sortOrder = sort === 'asc' ? 1 : -1;
-    
-        try {
-            const result = await assetsCollection.find(query).toArray();
-            
-            // Sort the assets manually since MongoDB might treat numbers as strings
-            result.sort((a, b) => {
-                const quantityA = parseInt(a.assetQuantity, 10);
-                const quantityB = parseInt(b.assetQuantity, 10);
-                return (quantityA - quantityB) * sortOrder;
-            });
-    
-            res.send(result);
-        } catch (err) {
-            res.status(500).send({ error: 'Failed to fetch assets' });
-        }
-    });
-    
-
-
-
-
-
-
-
-// Get all request,  search by email 
-    app.get('/requests', verifyToken, async (req, res) => {
-        const { searchByEmail } = req.query;
-        const query = {};
-        
-        if (searchByEmail) {
-          // query.assetName = { $regex: searchByName, $options: 'i' };
-          query.assetRequesterEmail = { $regex: searchByEmail, $options: 'i' };
-        }
-        
-        
-        try {
-          const result = await requestsCollection.find(query).toArray();
-          res.send(result);
-        } catch (err) {
-          res.status(500).send({ error: 'Failed to fetch Asset-Request' });
-        }
-      });
-
-
-// Get all assets with search and filter for Asset Request page
-    app.get('/assetsForAssetRequest', verifyToken, async (req, res) => {
-        const { searchTerm, availabilityFilter, typeFilter } = req.query;
-        const query = {};
-        
-        if (searchTerm) {
-          query.assetName = { $regex: searchTerm, $options: 'i' };
-        }
-        
-        if (availabilityFilter) {
-          query.assetAvailability = availabilityFilter;
-        }
-        
-        if (typeFilter) {
-          query.assetType = typeFilter;
-        }
-        
-        
-        try {
+    app.get('/assets', verifyToken, async (req, res) => {
+      const { search, sort, stockStatus, assetType } = req.query;
+      const query = {};
+      
+      if (search) {
+          query.assetName = { $regex: search, $options: 'i' };
+      }
+      
+      if (stockStatus) {
+          query.assetAvailability = stockStatus;
+      }
+      
+      if (assetType) {
+          query.assetType = assetType;
+      }
+      
+      const sortOrder = sort === 'asc' ? 1 : -1;
+  
+      try {
           const result = await assetsCollection.find(query).toArray();
+          
+          // Sort the assets manually since MongoDB might treat numbers as strings
+          result.sort((a, b) => {
+              const quantityA = parseInt(a.assetQuantity, 10);
+              const quantityB = parseInt(b.assetQuantity, 10);
+              return (quantityA - quantityB) * sortOrder;
+          });
+  
           res.send(result);
-        } catch (err) {
-          res.status(500).send({ error: 'Failed to fetch assetsForAssetRequest' });
-        }
-      });
-      
+      } catch (err) {
+          res.status(500).send({ error: 'Failed to fetch assets' });
+      }
+  });
 
-
-
-
-
-
-      
 
 
     // Save asset data in db
@@ -538,25 +449,96 @@ app.delete('/users/:id', verifyToken, verifyHRManager, async (req, res) => {
       res.send(result)
     })
 
+    // Get all assets with search and filter for Asset Request page
+    app.get('/assetsForAssetRequest', verifyToken, async (req, res) => {
+      const { searchTerm, availabilityFilter, typeFilter } = req.query;
+      const query = {};
+      
+      if (searchTerm) {
+        query.assetName = { $regex: searchTerm, $options: 'i' };
+      }
+      
+      if (availabilityFilter) {
+        query.assetAvailability = availabilityFilter;
+      }
+      
+      if (typeFilter) {
+        query.assetType = typeFilter;
+      }
+      
+      
+      try {
+        const result = await assetsCollection.find(query).toArray();
+        res.send(result);
+      } catch (err) {
+        res.status(500).send({ error: 'Failed to fetch assetsForAssetRequest' });
+      }
+    });
+
+
+
+
+
+// Get all request,  search by email 
+app.get('/requests', verifyToken, async (req, res) => {
+  const { searchByEmail } = req.query;
+  const query = {};
+  
+  if (searchByEmail) {
+    // query.assetName = { $regex: searchByName, $options: 'i' };
+    query.assetRequesterEmail = { $regex: searchByEmail, $options: 'i' };
+  }
+  
+  
+  try {
+    const result = await requestsCollection.find(query).toArray();
+    res.send(result);
+  } catch (err) {
+    res.status(500).send({ error: 'Failed to fetch Asset-Request' });
+  }
+});
+
+// Get all requests data
+app.get('/requests', verifyToken, verifyHRManager, async (req, res) => {
+const result = await requestsCollection.find().toArray()
+res.send(result)
+})
+
+
+// Get all requests with search, filter, and sort
+// app.get('/requests', verifyToken, async (req, res) => {
+//   const { search, status, type } = req.query;
+//   const query = {};
+
+//   if (search) {
+//     query.assetName = { $regex: search, $options: 'i' };
+//   }
+
+//   if (status) {
+//     query.assetRequestStatus = status;
+//   }
+
+//   if (type) {
+//     query.assetType = type;
+//   }
+
+
+//   try {
+//     const result = await requestsCollection.find(query).toArray();
+//     res.send(result);
+//   } catch (err) {
+//     res.status(500).send({ error: 'Failed to fetch requests' });
+//   }
+// });
+
+
+
     // Save asset request in db
     app.post('/request', verifyToken, verifyEmployee, async (req, res) => {
       const requestData = req.body
       const result = await requestsCollection.insertOne(requestData)
       res.send(result)
     })
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     // Get employee asset request by email
     app.get('/request/:email', verifyToken, verifyEmployee, async (req, res) => {
@@ -569,8 +551,6 @@ app.delete('/users/:id', verifyToken, verifyHRManager, async (req, res) => {
         res.status(500).send({ error: 'Failed to fetch requests' })
       }
     })
-
-
 
   // Get single employee asset request by email, with search, filter, and sort
   app.get('/myRequest/:email', verifyToken, verifyEmployee, async (req, res) => {
@@ -602,60 +582,6 @@ app.delete('/users/:id', verifyToken, verifyHRManager, async (req, res) => {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    // Get all asset requests data
-    app.get('/requests', verifyToken, verifyHRManager, async (req, res) => {
-      const result = await requestsCollection.find().toArray()
-      res.send(result)
-    })
-
-
-  // Get all requests with search, filter, and sort
-  // app.get('/requests', verifyToken, async (req, res) => {
-  //   const { search, status, type } = req.query;
-  //   const query = {};
-    
-  //   if (search) {
-  //     query.assetName = { $regex: search, $options: 'i' };
-  //   }
-    
-  //   if (status) {
-  //     query.assetRequestStatus = status;
-  //   }
-    
-  //   if (type) {
-  //     query.assetType = type;
-  //   }
-    
-    
-  //   try {
-  //     const result = await requestsCollection.find(query).toArray();
-  //     res.send(result);
-  //   } catch (err) {
-  //     res.status(500).send({ error: 'Failed to fetch requests' });
-  //   }
-  // });
-  
 
 
 
