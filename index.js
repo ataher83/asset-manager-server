@@ -91,6 +91,7 @@ async function run() {
     const usersCollection = db.collection('users');
     const assetsCollection = db.collection('assets');
     const requestsCollection = db.collection('requests');
+    const paymentsCollection = db.collection('payments');
 
     // HRManager signup route
     app.post('/signup/hrmanager', async (req, res) => {
@@ -239,19 +240,68 @@ async function run() {
     });
 
     // Create payment intent
-    app.post('/create-payment-intent', verifyToken, async (req, res) => {
-      const price = req.body.price;
-      const priceInCent = parseFloat(price) * 100;
-      if (!price || priceInCent < 1) return;
-      const { client_secret } = await stripe.paymentIntents.create({
-        amount: priceInCent,
+    // app.post('/create-payment-intent', verifyToken, async (req, res) => {
+    //   const price = req.body.price;
+    //   const priceInCent = parseFloat(price) * 100;
+    //   if (!price || priceInCent < 1) return;
+    //   const { client_secret } = await stripe.paymentIntents.create({
+    //     amount: priceInCent,
+    //     currency: 'usd',
+    //     automatic_payment_methods: {
+    //       enabled: true,
+    //     },
+    //   });
+    //   res.send({ clientSecret: client_secret });
+    // });
+
+
+    // payment intent
+    app.post('/create-payment-intent', async (req, res) => {
+      const {price} = req.body;
+      const amount = parseInt(price * 100);
+
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: amount,
         currency: 'usd',
-        automatic_payment_methods: {
-          enabled: true,
-        },
+        payment_method_types: ['card']
       });
-      res.send({ clientSecret: client_secret });
+
+      res.send({ 
+        clientSecret: paymentIntent.client_secret 
+      });
     });
+
+
+    // app.get('/payments/:email', verifyToken, async (req, res) => {
+    //   const query = { email: req.params.email }
+    //   if (req.params.email !== req.decoded.email) {
+    //     return res.status(403).send({ message: 'forbidden access '});
+    //   }
+    //   const result = await paymentsCollection.find(query).toArray();
+    //   res.send(result);
+    // })
+
+      // Get payment data by email
+      app.get('/payment/:email', verifyToken, async (req, res) => {
+        const email = req.params.email
+        const query = { 'email': email }
+        try {
+          const result = await paymentsCollection.find(query).toArray()
+          res.send(result)
+        } catch (err) {
+          res.status(500).send({ error: 'Failed to fetch payments' })
+        }
+      })
+
+
+    app.post('/payments', async(req, res) =>{
+      const payment = req.body;
+      const paymentResult = await paymentsCollection.insertOne(payment); 
+
+      //
+      console.log('payment info', payment);
+      res.send(paymentResult)
+    })
 
 
 
