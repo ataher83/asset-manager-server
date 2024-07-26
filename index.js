@@ -284,7 +284,7 @@ async function run() {
       // Get payment data by email
       app.get('/payment/:email', verifyToken, async (req, res) => {
         const email = req.params.email
-        const query = { 'email': email }
+        const query = { 'payerEmail': email }
         try {
           const result = await paymentsCollection.find(query).toArray()
           res.send(result)
@@ -293,7 +293,7 @@ async function run() {
         }
       })
 
-
+    // save payment in the database
     app.post('/payments', async(req, res) =>{
       const payment = req.body;
       const paymentResult = await paymentsCollection.insertOne(payment); 
