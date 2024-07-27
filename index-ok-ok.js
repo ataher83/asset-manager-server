@@ -155,9 +155,7 @@ async function run() {
 
     // Signup route for all users
     app.post('/user', async (req, res) => {
-      const { name, email, password, image, role, dateOfBirth, status, timestamp, companyName, companyLogo, 
-        packageName, memberLimit 
-    } = req.body;
+      const { name, email, password, image, role, dateOfBirth, status, timestamp, companyName, companyLogo, packageName, memberLimit } = req.body;
       const user = {
         name,
         email,
@@ -307,77 +305,8 @@ async function run() {
 
 
 
-// PackageName and MemberLimit fields  update route for PaymentAtSignup page
-
-    // router.patch('/user/:email', async (req, res) => {
-    //     const { email } = req.params;
-    //     const { packageName, memberLimit } = req.body;
-    
-    //     try {
-    //         const database = client.db('your_database_name');
-    //         const users = database.collection('users');
-    
-    //         const result = await users.updateOne(
-    //             { email },
-    //             { $set: { packageName, memberLimit } }
-    //         );
-    
-    //         if (result.matchedCount === 0) {
-    //             return res.status(404).json({ message: 'User not found' });
-    //         }
-    
-    //         const updatedUser = await users.findOne({ email });
-    //         res.status(200).json(updatedUser);
-    //     } catch (error) {
-    //         res.status(500).json({ message: 'Server error', error });
-    //     }
-    // });
-
-    
-    // app.patch('/user/:email', async (req, res) => {
-    //     const email = req.params.email;
-    //     const { packageName, memberLimit} = req.body;
-
-    //     try {
-    //         const result = await usersCollection.updateOne(
-    //             { email: email },
-    //             { $set: { packageName: packageName, memberLimit: memberLimit } }
-    //             // { email },
-    //             // { $set: { packageName, memberLimit } }
-    //         );
-
-    //         if (result.modifiedCount === 1) {
-    //             res.send({ success: true, message: 'PackageName and MemberLimit fields are updated' });
-    //         } else {
-    //             res.status(404).send({ success: false, message: 'User not found' });
-    //         }
-    //     } catch (err) {
-    //         res.status(500).send({ success: false, message: 'Failed to update user' });
-    //     }
-    //   });
-
-    app.patch('/user/:email', async (req, res) => {
-        const email = req.params.email;
-        const { packageName, memberLimit } = req.body;
-    
-        try {
-            const result = await usersCollection.updateOne(
-                { email: email },
-                { $set: { packageName, memberLimit } }
-            );
-    
-            if (result.modifiedCount === 1) {
-                res.send({ success: true, message: 'PackageName and MemberLimit fields are updated' });
-            } else {
-                res.status(404).send({ success: false, message: 'User not found' });
-            }
-        } catch (err) {
-            res.status(500).send({ success: false, message: 'Failed to update user' });
-        }
-    });
 
 
-      
     
 
 
@@ -410,7 +339,6 @@ async function run() {
 
 
     // Update a user's company name by ID [User added to the team]
-
     // app.patch('/users/:id', async (req, res) => {
     //   const id = req.params.id;
     //   const companyName = req.body.companyName;
