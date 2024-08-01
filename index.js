@@ -725,4 +725,3 @@ app.delete('/users/:id', verifyToken, verifyHRManager, async (req, res) => {
 }
 
 run().catch(console.dir);
-run().catch(console.dir);
