@@ -274,6 +274,12 @@ async function run() {
     });
 
 
+    // Get all payments data
+    app.get('/payments', verifyToken, async (req, res) => {
+      const result = await paymentsCollection.find().toArray();
+      res.send(result);
+    });
+
     // app.get('/payments/:email', verifyToken, async (req, res) => {
     //   const query = { email: req.params.email }
     //   if (req.params.email !== req.decoded.email) {
@@ -282,6 +288,7 @@ async function run() {
     //   const result = await paymentsCollection.find(query).toArray();
     //   res.send(result);
     // })
+
 
       // Get payment data by email
       app.get('/payment/:email', verifyToken, async (req, res) => {
@@ -377,11 +384,6 @@ async function run() {
     });
 
 
-      
-    
-
-
-
     // Get a user info by email
     app.get('/user/:email', async (req, res) => {
       const email = req.params.email;
@@ -390,7 +392,8 @@ async function run() {
     });
 
     // Get all users data
-    app.get('/users', verifyToken, async (req, res) => {
+    app.get('/users', async (req, res) => {
+    // app.get('/users', verifyToken, async (req, res) => {
       const result = await usersCollection.find().toArray();
       res.send(result);
     });
@@ -689,6 +692,18 @@ app.delete('/users/:id', verifyToken, verifyHRManager, async (req, res) => {
       };
       const result = await requestsCollection.updateOne(query, updateDoc);
       res.send(result);
+    });
+
+
+    // Delete requests by assetRequesterEmail
+    app.delete('/requests/:email', async (req, res) => {
+        const email = req.params.email;
+        try {
+            const result = await requestsCollection.deleteMany({ assetRequesterEmail: email });
+            res.status(200).json({ message: 'Requests deleted successfully', data: result });
+        } catch (error) {
+            res.status(500).json({ message: 'Error deleting requests', error });
+        }
     });
 
 
