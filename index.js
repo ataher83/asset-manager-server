@@ -241,21 +241,6 @@ async function run() {
       }
     });
 
-    // Create payment intent
-    // app.post('/create-payment-intent', verifyToken, async (req, res) => {
-    //   const price = req.body.price;
-    //   const priceInCent = parseFloat(price) * 100;
-    //   if (!price || priceInCent < 1) return;
-    //   const { client_secret } = await stripe.paymentIntents.create({
-    //     amount: priceInCent,
-    //     currency: 'usd',
-    //     automatic_payment_methods: {
-    //       enabled: true,
-    //     },
-    //   });
-    //   res.send({ clientSecret: client_secret });
-    // });
-
 
     // payment intent
     app.post('/create-payment-intent', async (req, res) => {
@@ -279,15 +264,6 @@ async function run() {
       const result = await paymentsCollection.find().toArray();
       res.send(result);
     });
-
-    // app.get('/payments/:email', verifyToken, async (req, res) => {
-    //   const query = { email: req.params.email }
-    //   if (req.params.email !== req.decoded.email) {
-    //     return res.status(403).send({ message: 'forbidden access '});
-    //   }
-    //   const result = await paymentsCollection.find(query).toArray();
-    //   res.send(result);
-    // })
 
 
       // Get payment data by email
@@ -315,53 +291,6 @@ async function run() {
 
 
 // PackageName and MemberLimit fields  update route for PaymentAtSignup page
-
-    // router.patch('/user/:email', async (req, res) => {
-    //     const { email } = req.params;
-    //     const { packageName, memberLimit } = req.body;
-    
-    //     try {
-    //         const database = client.db('your_database_name');
-    //         const users = database.collection('users');
-    
-    //         const result = await users.updateOne(
-    //             { email },
-    //             { $set: { packageName, memberLimit } }
-    //         );
-    
-    //         if (result.matchedCount === 0) {
-    //             return res.status(404).json({ message: 'User not found' });
-    //         }
-    
-    //         const updatedUser = await users.findOne({ email });
-    //         res.status(200).json(updatedUser);
-    //     } catch (error) {
-    //         res.status(500).json({ message: 'Server error', error });
-    //     }
-    // });
-
-    
-    // app.patch('/user/:email', async (req, res) => {
-    //     const email = req.params.email;
-    //     const { packageName, memberLimit} = req.body;
-
-    //     try {
-    //         const result = await usersCollection.updateOne(
-    //             { email: email },
-    //             { $set: { packageName: packageName, memberLimit: memberLimit } }
-    //             // { email },
-    //             // { $set: { packageName, memberLimit } }
-    //         );
-
-    //         if (result.modifiedCount === 1) {
-    //             res.send({ success: true, message: 'PackageName and MemberLimit fields are updated' });
-    //         } else {
-    //             res.status(404).send({ success: false, message: 'User not found' });
-    //         }
-    //     } catch (err) {
-    //         res.status(500).send({ success: false, message: 'Failed to update user' });
-    //     }
-    //   });
 
     app.patch('/user/:email', async (req, res) => {
         const email = req.params.email;
@@ -413,17 +342,6 @@ async function run() {
 
 
     // Update a user's company name by ID [User added to the team]
-
-    // app.patch('/users/:id', async (req, res) => {
-    //   const id = req.params.id;
-    //   const companyName = req.body.companyName;
-    //   const query = { _id: new ObjectId(id) };
-    //   const updateDoc = {
-    //     $set: { companyName },
-    //   };
-    //   const result = await usersCollection.updateOne(query, updateDoc);
-    //   res.send(result);
-    // });
 
     app.patch('/users/:id', verifyToken, verifyHRManager, async (req, res) => {
       const id = req.params.id;
@@ -540,13 +458,6 @@ app.delete('/users/:id', verifyToken, verifyHRManager, async (req, res) => {
       }
     });
 
-
-    // Create a new asset/ Save asset data in db
-    // app.post('/asset', verifyToken, verifyHRManager, async (req, res) => {
-    //   const assetData = req.body
-    //   const result = await assetsCollection.insertOne(assetData)
-    //   res.send(result)
-    // })
 
     // Create a new asset
     app.post('/assets', verifyToken, verifyHRManager, async (req, res) => {
@@ -693,6 +604,16 @@ app.delete('/users/:id', verifyToken, verifyHRManager, async (req, res) => {
       const result = await requestsCollection.updateOne(query, updateDoc);
       res.send(result);
     });
+
+
+    // Delete/Cancel a request
+    app.delete('/request/:id', verifyToken, verifyHRManager, async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await requestsCollection.deleteOne(query);
+      res.send(result);
+    });
+
 
 
     // Delete requests by assetRequesterEmail
